@@ -1,0 +1,123 @@
+name: POC18 CI Workflow
+on:
+    push:
+        branches:
+            - dev
+            - test
+            - main
+
+jobs:
+   deploy-dev:
+        name: Deploy to dev
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/dev'
+        environment: dev
+
+        steps:
+          - name: Deploy to dev EC2 via SSH
+            uses: appleboy/ssh-action@v1.0.3
+            with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USER }}
+                key: ${{ secrets.EC2_KEY }}
+                port: 22
+                script: |
+                    echo "Connected to EC2"
+
+                    echo "cd to poc18 app directory"
+                    cd /home/${{ secrets.EC2_USER }}/POC-18
+                    cd poc18-aws
+
+                    echo "Checkout to dev branch"
+                    git checkout dev
+
+                    echo "Pull latest code from remote dev"
+                    git pull origin dev
+
+                    echo "Copying contents of index html to httpd"
+                    sudo cp index.html /usr/share/httpd/noindex/index.html
+
+                    echo "Restarting httpd"
+                    sudo systemctl restart httpd
+
+                    # echo "Adding PORT and NODE_ENV to env"
+                    # export PORT=8080
+                    # export NODE_ENV=dev
+
+                    echo "Deployment to dev server successful!!"
+   deploy-test:
+        name: Deploy to test
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/test'
+        environment: test
+
+        steps:
+          - name: Deploy to test EC2 via SSH
+            uses: appleboy/ssh-action@v1.0.3
+            with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USER }}
+                key: ${{ secrets.EC2_KEY }}
+                port: 22
+                script: |
+                    echo "Connected to EC2"
+
+                    echo "cd to poc18 app directory"
+                    cd /home/${{ secrets.EC2_USER }}/POC-18
+                    cd poc18-aws
+
+                    echo "Checkout to test branch"
+                    git checkout test
+
+                    echo "Pull latest code from remote test"
+                    git pull origin test
+
+                    echo "Copying contents of index html to httpd"
+                    sudo cp index.html /usr/share/httpd/noindex/index.html
+
+                    echo "Restarting httpd"
+                    sudo systemctl restart httpd
+
+                    # echo "Adding PORT and NODE_ENV to env"
+                    # export PORT=8080
+                    # export NODE_ENV=dev
+
+                    echo "Deployment to test server successful!!"
+   deploy-prod:
+        name: Deploy to prod
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        environment: prod
+
+        steps:
+          - name: Deploy to prod EC2 via SSH
+            uses: appleboy/ssh-action@v1.0.3
+            with:
+                host: ${{ secrets.EC2_HOST }}
+                username: ${{ secrets.EC2_USER }}
+                key: ${{ secrets.EC2_KEY }}
+                port: 22
+                script: |
+                    echo "Connected to EC2"
+
+                    echo "cd to poc18 app directory"
+                    cd /home/${{ secrets.EC2_USER }}/POC-18
+                    cd poc18-aws
+
+                    echo "Checkout to main branch"
+                    git checkout main
+
+                    echo "Pull latest code from remote dev"
+                    git pull origin main
+
+                    echo "Copying contents of index html to httpd"
+                    sudo cp index.html /usr/share/httpd/noindex/index.html
+
+                    echo "Restarting httpd"
+                    sudo systemctl restart httpd
+
+                    # echo "Adding PORT and NODE_ENV to env"
+                    # export PORT=8080
+                    # export NODE_ENV=dev
+
+                    echo "Deployment to prod server successful!!"
